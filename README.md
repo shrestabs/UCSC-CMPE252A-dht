@@ -2,24 +2,19 @@
 This project implements a distributed hash table as described in the chord protocol. This is a part of the CMPE252A a.k.a Computer Netoworks course requirement at UC Santa Cruz. 
 
 **Prerequisites**
-1. Install openssl
-
-On mac,
+- Install openssl with
 `brew install openssl`
-
-2.Update $(LDFLAGS) $(CPPFLAGS) to the path openssl is installed
+- Update $(LDFLAGS) $(CPPFLAGS) to the path openssl is installed
+`export LDFLAGS="-L/usr/local/opt/openssl/lib"`
+`export CPPFLAGS="-I/usr/local/opt/openssl/include"`
+`export PATH="/usr/local/opt/openssl/bin:$PATH"`
 
 **Building**
-The binary is generated with make. Run the program without arguments
-`make chord`
-`./chord`
+The binary is generated with make. `make chord`
+ Run the program without arguments as `./chord`
+To clean run, `make clean`
 
-And to clean run,
-`make clean`
-
-
-
-**Mandatory vim settings to contribute:**
-set tabstop=4
-set shiftwidth=4
-set expandtab
+**Vim settings**
+`set tabstop=4`
+`set shiftwidth=4`
+`set expandtab`
