@@ -1,0 +1,5 @@
+Test cases
+1.border cases of key = 0, 255, 256
+2.find when ring is empty
+3.invalid params input
+4.

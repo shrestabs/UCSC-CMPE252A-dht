@@ -6,11 +6,12 @@ INC_DIRS ?= ./inc
 
 TARGET ?= chord
 SRCS := chord.cpp
+OBJ = $(ccsrc:.cpp=.o)
 
 
-$(TARGET):
-	g++ -I $(INC_DIRS) -o $(BUILD_DIR)chord $(SRC_DIRS)/chord.cpp
-	#mv chord $(BUILD_DIR)/chord
+
+$(TARGET): $(OBJ)
+	g++ -I $(INC_DIRS) $(LDFLAGS) $(CPPFLAGS) -lssl -lcrypto -o $(BUILD_DIR)/chord $(SRC_DIRS)/chord.cpp $(SRC_DIRS)/node.cpp $(SRC_DIRS)/fingertable.cpp
 
 clean:
-	$(RM) -f $(BUILD_DIR)/chord
+	$(RM) $(BUILD_DIR)/chord
