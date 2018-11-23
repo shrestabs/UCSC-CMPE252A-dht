@@ -3,6 +3,16 @@
         "map": "cpp",
         "set": "cpp",
         "string": "cpp",
-        "vector": "cpp"
+        "vector": "cpp",
+        "iostream": "cpp",
+        "iomanip": "cpp",
+        "ostream": "cpp",
+        "__bit_reference": "cpp",
+        "__string": "cpp",
+        "__tree": "cpp",
+        "algorithm": "cpp",
+        "string_view": "cpp",
+        "__hash_table": "cpp",
+        "unordered_map": "cpp"
     }
 }

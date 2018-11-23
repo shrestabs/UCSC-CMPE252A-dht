@@ -16,6 +16,10 @@ class Node
 public:
     Node(uint8_t id): id_(id)
     {
+        myfingerTable_=   FingerTable(id);
+        successor_id = id;
+        cout<<"Node constructed"<<endl;
+        cout<<"Number of keys at node "<<unsigned(id)<<" - init - "<<localKeys_.size()<<endl;
 
     }
     /**
@@ -23,13 +27,19 @@ public:
      * If this is the first node to join the Chord network, the parameter is NULL.
      */
     void                        join(Node* node);
-    uint8_t                     find(uint8_t key);
+    int                         find(uint8_t key);
     void                        insert(uint8_t key, uint8_t value);
     void                        remove(uint8_t key);
-
+    int                     accessKeyRPC(uint8_t key, Node *);
+    void                        initNodeFingertable(Node *);
+    void                        printNodeFingertable(Node *);
+    Node*                       remoteRecursiveLookup(uint8_t key);
+    //FIXME: Temprorary implementation instead of timer
+    static int                  stablizeNode();
 private:
-    uint64_t                    id_;                /* id of this node */
-    FingerTable                 fingerTable_;       /* Fingertable to 
+    uint8_t                    id_;                /* id of this node */
+    uint8_t                     successor_id;       /* id of the successor node */
+    FingerTable                 myfingerTable_;       /* Fingertable to 
                                                         lookup on this node*/
     std::map<uint8_t, uint8_t> localKeys_;          /* Denotes files on server */
 };

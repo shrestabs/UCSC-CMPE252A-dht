@@ -4,7 +4,13 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <vector>
+#include <iostream>
+#include <cmath>
 #define BITLENGTH 8
+//FIXME: 2 power 8 
+#define TOTALNODE 256 
+//TESTME: tested for BITLENGTH 8
+#define CHORDJUMP(nodeindex, logdist) nodeindex + ((2 << logdist) % (2<< (BITLENGTH - 1)))
 
 using namespace std;
 
@@ -14,24 +20,29 @@ class Node;
 class FingerTable
 {
 public:
-    /**
-     * @param nodeId: the id of node hosting the finger table.
-     */
-    FingerTable() {}
+    FingerTable () {}
     FingerTable(uint8_t nodeId);
-    void set(size_t index, Node* successor) {
-        fingerTable_[index] = successor;
+    void set(size_t index, Node* successor)
+    {
+        vecfingerTable_[index] = successor;
     }
-    uint8_t get(size_t index) {
-        return 0; //fingerTable_[index];
+    Node* get(size_t index)
+    {
+        return vecfingerTable_[index];
+    }
+    uint8_t get_size()
+    {
+        return fingerTableSize;
     }
     // TODO: shrbs: complete print function
     void prettyPrint();
-    void stablizeNode();
+    void copyFingerTable(FingerTable srcft);
+    
 
 private:
     uint8_t nodeId_;
-    std::vector<Node*> fingerTable_;
+    uint8_t fingerTableSize;
+    std::vector<Node*> vecfingerTable_;
 };
 
 
