@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     n1.join(&n0);       /* the second node join the Chord network. */
     //Manually suc of new node prep -> not required for 2 nodes
     cout<<setw(80)<<"TEST4xxxxxxxxxinsertxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"<<endl;
-    n1.insert(5, 5);       /* insert key = 5 */
+    n0.insert(5, 5);       /* insert key = 5 */
     cout<<setw(80)<<"TEST5xxxxxxxxxfindxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"<<endl;
     /* key query. sequence of nodes to talk to */
     bool res = n0.find(5);
@@ -49,11 +49,11 @@ int main(int argc, char *argv[])
     else
         cout<<"TEST5 element not found"<<endl;
     cout<<setw(80)<<"TEST6xxxxxxxxxinsertxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"<<endl;
-    n1.insert(71, 71);       /* insert key = 5 */
+    n0.insert(71, 71);       /* insert key = 5 */
     cout<<setw(80)<<"TEST7xxxxxxxxxinsertxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"<<endl;
-    n1.insert(2, 2);       /* insert key = 5 */
+    n0.insert(2, 2);       /* insert key = 5 */
     cout<<setw(80)<<"TEST7xxxxxxxxxinsertxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"<<endl;
-    n1.insert(9, 9);       /* insert key = 5 */
+    n0.insert(9, 9);       /* insert key = 5 */
     /* event loop */
     return 0;
 }

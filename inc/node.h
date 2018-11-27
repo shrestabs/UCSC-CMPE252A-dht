@@ -17,8 +17,9 @@ public:
 
     Node(uint8_t id): id_(id)
     {
-        myfingerTable_=   FingerTable(id);
+        myfingerTable_= FingerTable(id);
         pred_id = id;
+        pred_address = this;
         successor_id = id; /* For stablize */
         cout<<"Node constructed"<<endl;
         cout<<"Number of keys at node "<<unsigned(id)<<" - init - "<<localKeys_.size()<<"-----"<<endl;
@@ -36,7 +37,9 @@ public:
     void                        insert(uint8_t key, uint8_t value);
     void                        remove(uint8_t key);
     bool                        accessKeyRPC(uint8_t key, Node *);
-    void                        initNodeFingertable();
+    void                        initNodeFingertable(Node* bootstrapper);
+    void                        updateNodeFingerTable();
+    void                        updateThisNodesFingerTable(Node *update, uint8_t updateid, uint8_t index);
     Node*                       remoteRecursiveLookup(uint8_t key);
     void                        moveKeys(Node *srcnode, Node *nodedest);
     int                         sendStablizeMessage(Node *successornode, uint8_t curid_);
@@ -44,6 +47,7 @@ public:
 private:
     uint8_t                     id_;                /* id of this node */
     uint8_t                     pred_id;            /* id of the predecessor node */
+    Node*                       pred_address;       /* Address of the predecessor node */
     uint8_t                     successor_id;       /* id of the successor node */
     FingerTable                 myfingerTable_;     /* Fingertable to 
                                                         lookup on this node*/

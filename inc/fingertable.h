@@ -35,8 +35,8 @@ public:
     }
     // TODO: decorate print function
     void prettyPrint();
-    void updateFingerTable(Node *node, uint8_t thisnodeid, uint8_t pred_id, uint8_t key);
-    void copyFingerTable(uint8_t id, uint8_t successor_id, FingerTable srcft);
+    //void updateFingerTable(Node *node, uint8_t thisnodeid, uint8_t pred_id, uint8_t key);
+    //void copyFingerTable(uint8_t id, uint8_t successor_id, Node* pred);
     
 
 private:
