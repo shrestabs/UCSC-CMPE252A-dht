@@ -34,7 +34,7 @@ FingerTable::prettyPrint()
             cout<<vecfingerTable_[i].first<<"\t";
         }
 
-        cout<<unsigned(vecfingerTable_[i].second)<<"\n";
+        cout<<"successor value:"<<unsigned(vecfingerTable_[i].second)<<"\n";
 
     }
     cout<<endl;

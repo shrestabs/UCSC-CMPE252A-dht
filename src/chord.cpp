@@ -36,8 +36,7 @@ int main(int argc, char *argv[])
     //FIXME: if output is expected print PASS
     cout<<setw(80)<<"TEST2xxxxxxxxxinsertxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"<<endl;
     n0.insert(3, 3);    /* insert key = 3 */
-    cout<<setw(80)<<"TEST3xxxxxxxxxjoinxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"<<endl;
-    n1.join(&n0);       /* the second node join the Chord network. */
+
     //Manually suc of new node prep -> not required for 2 nodes
     cout<<setw(80)<<"TEST4xxxxxxxxxinsertxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"<<endl;
     n0.insert(5, 5);       /* insert key = 5 */
@@ -52,8 +51,12 @@ int main(int argc, char *argv[])
     n0.insert(71, 71);       /* insert key = 5 */
     cout<<setw(80)<<"TEST7xxxxxxxxxinsertxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"<<endl;
     n0.insert(2, 2);       /* insert key = 5 */
-    cout<<setw(80)<<"TEST7xxxxxxxxxinsertxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"<<endl;
+    cout<<setw(80)<<"TEST8xxxxxxxxxinsertxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"<<endl;
     n0.insert(9, 9);       /* insert key = 5 */
+
+
+    cout<<setw(80)<<"TEST3xxxxxxxxxjoinxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"<<endl;
+    n1.join(&n0);       /* the second node join the Chord network. */
     /* event loop */
     return 0;
 }
