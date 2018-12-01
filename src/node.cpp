@@ -65,10 +65,19 @@ Node::initNodeFingertable(Node* bootstrapper)
     Node* tmpnode = bootstrapper->remoteRecursiveLookup(CHORDJUMP(id_, 0));
     cout<<"returned successor "<<unsigned(tmpnode->id_)<<endl;
     myfingerTable_.set(0, tmpnode, tmpnode->id_);
+
+    pred_id = tmpnode->pred_id;
+    cout<<"Updated pred_id to "<<unsigned(pred_id)<<endl;
+    pred_address = tmpnode->pred_address;
+    tmpnode->pred_id = id_;
+    cout<<"Updated "<<unsigned(tmpnode->id_)<<" predid to "<<unsigned(id_)<<endl;
+    tmpnode->pred_address = this;
+
+    
     int normtempid = tmpnode->id_;
     if (tmpnode->id_ < id_) {
             normtempid += 255;
-            cout<<__FUNCTION__<<" normalized tempid "<<normtempid<<endl;
+            cout<<__FUNCTION__<<" normalized succid "<<normtempid<<endl;
     }
     for(uint8_t i=1; i< myfingerTable_.get_size() ; i++) {
         Node *tmpnode1 = NULL;
@@ -80,142 +89,17 @@ Node::initNodeFingertable(Node* bootstrapper)
 
         if (normtempid > normchordjump ) { //FIXME: RANGE 
             cout<<"reusing prev ith value for "<<unsigned(i)<<endl;
-            tmpnode1 = myfingerTable_.get(i);
+            tmpnode1 = myfingerTable_.get(i-1);
         }
         else {
             cout<<"DEBUG:else part: prev i entry outdated "<<tmpnode<<endl;
             tmpnode1 = bootstrapper->remoteRecursiveLookup(CHORDJUMP(id_, i));
         }
-        myfingerTable_.set(i, tmpnode, tmpnode->id_);
+        myfingerTable_.set(i, tmpnode1, tmpnode1->id_);
     }
     myfingerTable_.prettyPrint();
 }
 
-/*
-    @details     O(log N) lookup. 
-                ith entry at peer with id n is first peer with id >= n + 2^i * (mod 2^m)
-                Recur and reach predecessor. 
-                Instead of returning predecessor as chord suggests we return the successor
-    @return     successor
-    */
-   //FIXME: optimize this code to 1 block 
-Node* 
-Node::remoteRecursiveLookup(uint8_t key) // = find_predecessor in chord paper
-{
-    /* case 1: "this" is the only server in ring */
-    if (pred_id == id_) /* also (succ = id) implicit*/
-        return this;
-    /* the range of this node is in order 0 - BITLENGTH */
-    cout<<"DEBUG: pred id key"<<unsigned(pred_id)<<" "<<unsigned(id_)<<" "<<unsigned(key)<<endl;
-    if(pred_id < id_) {
-        cout<<"DEBUG: Key is "<<unsigned(key)<<" this NodeID,pred id "<<unsigned(id_)<<" "<<unsigned(pred_id)<<endl;
-        /* case 2a: Recurssion Base case:"this" is not the 
-            only server but key exists here 
-        */
-        if((key > pred_id) && (key <= id_))
-            return this;
-
-        /* find successor in the fingertable */
-        for(uint8_t i=0; i< myfingerTable_.get_size() - 2 ; i++) {
-            /* successor cannot be smaller unless we crossed the module ring */
-            int normsucc0 = myfingerTable_.get(i)->id_;
-            int normsucc1 = myfingerTable_.get(i+1)->id_;
-            if( id_ > normsucc0) {
-                normsucc0 += 255;
-            }
-            if( id_ > normsucc1) {
-                normsucc1 += 255;
-            }
-
-            if((key >= normsucc0) && (key < normsucc1))
-                return myfingerTable_.get(i+1)->remoteRecursiveLookup(key);
-        }
-        cout<<"ERROR:Can never reach here"<<endl;
-    }
-    /* the range of this node thru mod 2^BITLENGTH boundary */
-    else {
-        int normid = id_ + 255;
-        int normkey = key;
-        if((key > pred_id) && (key < normid)) { /* case: key 255 0 id */
-            cout<<"DEBUG:no change to key "<<unsigned(key)<<endl;
-        }
-        else {  /* case: 255 0 key id */
-            normkey += 255;
-            cout<<"DEBUG:key->normkey: "<<unsigned(key)<<" "<<unsigned(normkey)<<endl;
-        }
-
-        if((normkey > pred_id) && (normkey <= normid)) {
-            cout<<"found in this node"<<endl;
-            return this;
-        }
-
-        for(uint8_t i=0; i< myfingerTable_.get_size() - 2 ; i++) {
-            int normsucc0 = myfingerTable_.get(i)->id_;
-            int normsucc1 = myfingerTable_.get(i+1)->id_;
-            if( id_ >= normsucc0 ) {
-                normsucc0 += 255;
-            }
-            if( id_ >= normsucc1 ) {
-                normsucc1 += 255;
-            }
-
-            cout<<"normsucc0 key normsucc1 "<<normsucc0<<" "<<unsigned(key)<<" "<<normsucc1<<endl;
-            if((key >= normsucc0) && (key < normsucc1))
-                return myfingerTable_.get(i+1)->remoteRecursiveLookup(key);
-        }
-
-    }
-    cout<<"error"<<endl;
-    return NULL; //FIXME
-}
-
-
-void
-Node::join(Node* node)
-{
-    /* Based on key id posnode is where (after pred) the new node joins. */
-    Node *sucpos = NULL;
-    /* First node of DHT */
-    if(node == NULL) {
-        cout<<"DEBUG"<<" init of first node of network "<<unsigned(id_)<<endl;
-        for(uint8_t i=0; i< myfingerTable_.get_size() ; i++) {
-            myfingerTable_.set(i, this, id_);
-        }
-        myfingerTable_.prettyPrint();
-        return;
-    }
-    /* Subsequent nodes. */
-    /* Find the correct place to insert */
-    sucpos = node->remoteRecursiveLookup(id_);
-///////////////////////////////outdated logic 
-    cout<<"found successor_id "<<unsigned(sucpos->id_)<<std::flush<<endl;
-    successor_id = sucpos->id_;
-    cout<<"Updated successor_id of "<<unsigned(id_)<<" to "<<unsigned(successor_id)<<std::flush<<endl; 
-    pred_id = sucpos->pred_id;
-    cout<<"Updated pred_id to "<<unsigned(pred_id)<<endl;
-    pred_address = sucpos->pred_address;
-    sucpos->pred_id = id_;
-    cout<<"Updated "<<unsigned(sucpos->id_)<<" predid to "<<unsigned(id_)<<endl;
-    sucpos->pred_address = this;
-    //pred_id = sendStablizeMessage(sucpos, id_);
-///////////////////////////////outdated logic
-    /* initfingertable from pred */
-    initNodeFingertable(sucpos);
-    /* update fingertable of related nodes */
-    updateNodeFingerTable();
-    /* move keys */
-    moveKeys(sucpos->pred_address, this);
-    
-/* build your finger table. bootstrap it from the node introducing it to you */
-/* move 1/n keys */
-/* print migrated keys */
-    cout<<"Finger table of joiner(dest) updated"<<endl;
-    myfingerTable_.prettyPrint();
-    cout<<"Finger table of bootstrapper(src) updated"<<endl;
-    node->myfingerTable_.prettyPrint();
-    /* Once a node is joined stablize all nodes to update fingertable */
-    return;
-}
 
 /* @details     Finds where the key is from the fingertable and 
                 queries that node for the value with the key
@@ -306,12 +190,127 @@ Node::moveKeys(Node *srcnode, Node *nodedest)
     }
 }
 
-void
-Node::updateNodeFingerTable()
+
+
+bool 
+Node::cycled(uint8_t updateid, uint8_t index)
 {
-    for(int i=1; i<BITLENGTH; i++) {
-        Node* succ = remoteRecursiveLookup(id_ - (1 << (i - 1)));
-        cout<<__FUNCTION__<<"for "<<i<<"succ found is "<<succ->id_<<endl;
+    int sum = id_;
+    for(int i=0; i<index; i++) {
+        sum += 1<<i;
+        if(sum > updateid) 
+            return true;
+        
+    }
+    return false;
+}
+
+
+
+
+
+void
+Node::join(Node* node)
+{
+    /* Based on key id posnode is where (after pred) the new node joins. */
+    Node *sucpos = NULL;
+    /* First node of DHT */
+    if(node == NULL) {
+        cout<<"DEBUG"<<" init of first node of network "<<unsigned(id_)<<endl;
+        for(uint8_t i=0; i< myfingerTable_.get_size() ; i++) {
+            myfingerTable_.set(i, this, id_);
+        }
+        myfingerTable_.prettyPrint();
+        return;
+    }
+    /* Subsequent nodes. */
+    /* Find the correct place to insert */
+    sucpos = node->remoteRecursiveLookup(id_);
+
+
+    /* initfingertable from pred */
+    initNodeFingertable(sucpos);
+    /* update fingertable of related nodes */
+    updateNodeFingerTable(node);
+
+///////////////////////////////outdated logic 
+    cout<<"found successor_id "<<unsigned(sucpos->id_)<<std::flush<<endl;
+    successor_id = sucpos->id_;
+    cout<<"Updated successor_id of "<<unsigned(id_)<<" to "<<unsigned(successor_id)<<std::flush<<endl; 
+    
+    //pred_id = sendStablizeMessage(sucpos, id_);
+///////////////////////////////outdated logic
+
+
+    /* move keys */
+    moveKeys(sucpos->pred_address, this);
+    
+/* build your finger table. bootstrap it from the node introducing it to you */
+/* move 1/n keys */
+/* print migrated keys */
+    cout<<"Finger table of joiner(dest) updated"<<endl;
+    myfingerTable_.prettyPrint();
+    cout<<"Finger table of bootstrapper(src) updated"<<endl;
+    node->myfingerTable_.prettyPrint();
+    /* Once a node is joined stablize all nodes to update fingertable */
+    return;
+}
+
+/*
+    @details     O(log N) lookup. 
+                ith entry at peer with id n is first peer with id >= n + 2^i * (mod 2^m)
+                Recur and reach predecessor. 
+                Instead of returning predecessor as chord suggests we return the successor
+    @return     successor
+    */
+   //FIXME: optimize this code to 1 block 
+Node* 
+Node::remoteRecursiveLookup(uint8_t key) // = find_predecessor in chord paper
+{
+    cout<<__FUNCTION__<<"DEBUG: pred id key "<<unsigned(pred_id)<<" "<<unsigned(id_)<<" "<<unsigned(key)<<endl;
+    if (pred_id == id_) /* also (succ = id) implicit*/
+        return this;
+
+    if((key > pred_id) && (key <= id_)) {
+        cout<<"1found in this node "<<unsigned(id_)<<endl;
+        return this;
+    }
+
+    if(pred_id > id_) {
+        if((key > pred_id) || (key <= id_)) {
+            cout<<"2found in this node "<<unsigned(id_)<<endl;
+            return this;
+        }
+    }
+
+    /* Look at finger table now */
+    for(uint8_t i=0; i< myfingerTable_.get_size() - 2 ; i++) {
+        int normsucc0 = myfingerTable_.get(i)->id_;
+        int normsucc1 = myfingerTable_.get(i+1)->id_;
+
+        if((key > normsucc0) || (key <= normsucc1))
+            return myfingerTable_.get(i+1)->remoteRecursiveLookup(key); 
+
+        if (normsucc0 > normsucc1) {
+            if((key > normsucc0) && (key <= normsucc1))
+                return myfingerTable_.get(i+1)->remoteRecursiveLookup(key);
+        }
+
+    }
+    cout<<"part last entry"<<endl;
+    return myfingerTable_.get(7)->remoteRecursiveLookup(key);
+ 
+}
+
+void
+Node::updateNodeFingerTable(Node *bootstrapper)
+{
+    cout<<"---------------UPDATE STARTED -----------------"<<endl;
+    for(int i=0; i<BITLENGTH; i++) {
+        Node* succ = remoteRecursiveLookup(id_ - ( 1 << (i) ));
+        uint8_t temp = id_ - ( 1 << (i));  /* left shift does not gracefully mod on uint8_t  */
+        //uint8_t temp = 
+        cout<<__FUNCTION__<<" for "<<i<<" succ found is "<<unsigned(succ->id_)<<"id_ - ( 1 << (i) "<< unsigned(temp) <<endl;
         (succ->pred_address)->updateThisNodesFingerTable(this, id_, i);
     }
 }
@@ -320,10 +319,29 @@ void
 Node::updateThisNodesFingerTable(Node *update, uint8_t updateid, uint8_t index)
 {
 
-    cout<<__FUNCTION__<<" DEBUG:"<<unsigned(id_)<<" "<<unsigned(updateid)<<" "<<unsigned(myfingerTable_.get(index)->id_)<<endl;
-    //normalize updateid
-    if ((updateid >= id_) && (updateid < myfingerTable_.get(index)->id_)) {
+    cout<<__FUNCTION__<<" DEBUG:"<<unsigned(index)<<" "<<unsigned(id_)<<" "<<unsigned(updateid)<<" "<<unsigned(myfingerTable_.get(index)->id_)<<endl;
+    int normftindex = myfingerTable_.get(index)->id_;
+    Node *ftnode = (myfingerTable_.get(index))->pred_address;
+    int normupdate = updateid;
+    if (updateid <= id_) { //eg.pred or id= 254 updateid 2 other succ 3, 4,  or updateid 63 id 5
+        cout<<"using 255 boundary logic"<<endl; 
+        //updateid += 255;          bug is dont just rearrange. keep it at the rite distance from one another
+        normupdate += (255 - id_);
+
+    }
+    
+    /* we jumped accross the 255 bound */
+    //if (cycled(updateid, index) ) {
+    if ( id_ >= normftindex) {
+            cout<<"~~~~~~~~~~~~~normindex"<<endl;
+            normftindex += (255 - id_);
+    }
+    /* e.g. */
+    if ((normupdate >= id_) && (normupdate < normftindex )) {
+        cout<<"~~~~~~~~~~~~~update~~~~~~~~"<<endl;
         myfingerTable_.set(index, update, updateid);
-        pred_address->updateThisNodesFingerTable(update, updateid, index);
+        myfingerTable_.prettyPrint();
+        cout<<"~~~~~~~~~~~~~/update~~~~~~~~"<<endl;
+        ftnode->updateThisNodesFingerTable(update, updateid, index);
     }
 }

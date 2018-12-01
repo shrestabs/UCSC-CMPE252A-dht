@@ -38,12 +38,13 @@ public:
     void                        remove(uint8_t key);
     bool                        accessKeyRPC(uint8_t key, Node *);
     void                        initNodeFingertable(Node* bootstrapper);
-    void                        updateNodeFingerTable();
+    void                        updateNodeFingerTable(Node* bootstrapper);
     void                        updateThisNodesFingerTable(Node *update, uint8_t updateid, uint8_t index);
     Node*                       remoteRecursiveLookup(uint8_t key);
     void                        moveKeys(Node *srcnode, Node *nodedest);
     int                         sendStablizeMessage(Node *successornode, uint8_t curid_);
     uint8_t                     sendNotifyMessage();
+    bool                        cycled(uint8_t update_id, uint8_t index);
 private:
     uint8_t                     id_;                /* id of this node */
     uint8_t                     pred_id;            /* id of the predecessor node */
