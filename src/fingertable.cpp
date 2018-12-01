@@ -1,26 +1,41 @@
-/*
-@file           fingertable.cpp
-@brief          Implements the node's fingertable.
+/**
+ * @file           fingertable.cpp
+ * @brief          Implements the node's fingertable.
+ * 
+ * Initialized the fingertable for a new node. Prints the ve
 
-@details        Each of the nodes in the system have their fingertable that 
-                needs to be kept up to date. 
 @author         Shresta B.S
 @date           23/Oct/2018
 */
 #include "fingertable.h"
+
+/**
+    @fn         FingerTable
+    @brief      Constructor of fingertable
+    @details    Log client application MUST call this API to uninitialize
+    @param      Reference to timer that needs to be started
+    @return     int (errno)
+*/
 FingerTable::FingerTable(uint8_t nodeId): nodeId_(nodeId)
 {
     Node *dummy = NULL;
-    cout<<"-----Constructor of fingertable"<<endl;
+    DEBUG("-----Constructor of fingertable----"<<endl);
     fingerTableSize = BITLENGTH;
     /* According to Chord paper, the finger table starts from index=1 */
     for(uint8_t i=0; i<BITLENGTH ; i++) {
         vecfingerTable_.push_back(std::make_pair(dummy,i));
     }
-    cout<<"DUMMY was "<<dummy<<endl;
 }
 
+/**
+    @fn         prettyPrint
+    @brief      Prints fingertable of the node that stores this table
 
+    @details    Prints pairs of the fingertable
+                E.g.Address:0x7ffee2c380a0  successor value:5
+    @param[in]  none
+    @return     none
+*/
 void
 FingerTable::prettyPrint()
 {
@@ -33,22 +48,7 @@ FingerTable::prettyPrint()
             cout<<"Address:";
             cout<<vecfingerTable_[i].first<<"\t";
         }
-
         cout<<"successor value:"<<unsigned(vecfingerTable_[i].second)<<"\n";
-
     }
     cout<<endl;
 }
-
-
-/* @details     Copy fingertable in node id_'s prespective 
-void
-FingerTable::copyFingerTable(uint8_t thisnodeid, uint8_t pred_id, uint8_t key, Node* pred)
-{
-    uint16_t normsuccessor = (successor_id < id_) ? successor_id + 255 : successor_id;
-    for(uint8_t i=0; i<srcft.vecfingerTable_.size(); i++) {
-        vecfingerTable_[i] = pred->re remoteRecursiveLookup CHORDJUMP(thisnodeid, i)
-
-    }
-}
-*/
