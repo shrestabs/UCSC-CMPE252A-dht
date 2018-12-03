@@ -7,6 +7,6 @@ The binary is generated with make. `make chord`
 To clean run, `make clean`  
 
 Vim settings
-`set tabstop=4`
-`set shiftwidth=4`
-`set expandtab`
+`set tabstop=4` . 
+`set shiftwidth=4` . 
+`set expandtab` . 
