@@ -30,8 +30,8 @@
     std::map<uint8_t, uint8_t>::iterator it;
     it = node->localKeys_.find(key);
     if (it != node->localKeys_.end()) {
-        DEBUG("DEBUG: accessKeyRPC key"<<unsigned(node->localKeys_[key])<<
-              " found at "<<unsigned(id_)<<endl);
+        cout<<"key ("<<unsigned(node->localKeys_[key])<<
+              ") found at "<<unsigned(node->id_)<<endl;
         return  1;
     }
      return value;
@@ -53,7 +53,7 @@ Node::initNodeFingertable(Node* bootstrapper)
 {
     DEBUG("DEBUG"<<"init of subsequent node of network "<<unsigned(id_)<<endl);
     Node* tmpnode = bootstrapper->remoteRecursiveLookup(CHORDJUMP(id_, 0));
-    cout<<"returned successor "<<unsigned(tmpnode->id_)<<endl;
+    DEBUG("returned successor "<<unsigned(tmpnode->id_)<<endl);
     myfingerTable_.set(0, tmpnode, tmpnode->id_);
 
     int normtempid = tmpnode->id_;
@@ -77,6 +77,7 @@ Node::initNodeFingertable(Node* bootstrapper)
         else {
             DEBUG("DEBUG:else part: prev i entry outdated "<<tmpnode<<endl);
             tmpnode1 = bootstrapper->remoteRecursiveLookup(CHORDJUMP(id_, i));
+            /* */
         }
         myfingerTable_.set(i, tmpnode1, tmpnode1->id_);
     }
@@ -88,7 +89,6 @@ Node::initNodeFingertable(Node* bootstrapper)
     cout<<"Updated "<<unsigned(tmpnode->id_)<<" predid to "
         <<unsigned(id_)<<endl;
     tmpnode->pred_address = this;
-
 #ifdef _DEBUG
     myfingerTable_.prettyPrint();
 #endif
@@ -158,7 +158,6 @@ Node::remove(uint8_t key)
  *
  * @param[in]       key the key of the file to be removed
  * @return          Void
- * @bugs            None
  */ 
 void
 Node::insert(uint8_t key, uint8_t value)
@@ -184,7 +183,39 @@ Node::insert(uint8_t key, uint8_t value)
     cout<<"(Key, value)=("<<unsigned(key)<<",";
     cout<<unsigned(value)<<") inserted at Node id = "
         <<unsigned(foundnode->id_)<<endl;
+
+    cout<<"Keys at current node "<<unsigned(foundnode->id_)
+        <<" aftr movement "<<endl;
+    for(it = foundnode->localKeys_.begin(); 
+        it != foundnode->localKeys_.end(); ++it)
+    {
+        std::cout<<"(Key, value)="<<unsigned(it->first)
+                 << "," <<unsigned(it->second)<< "\n";
+    }
+    
     return;
+}
+
+/**
+ * @fn              printKeys
+ *
+ * Print all the keys in the map data structure of a node
+ *
+ * @param[in]       srcnode the node which wants it data printed
+ * @return          Void
+ */
+void
+Node::printKeys(Node *srcnode)
+{
+    map<uint8_t, uint8_t>::iterator it;
+    cout<<"Keys at "<<unsigned(srcnode->id_)<<endl;
+    cout<<"-------------------"<<endl;
+    for(it = srcnode->localKeys_.begin();
+        it != srcnode->localKeys_.end(); ++it) {
+        std::cout<<"| (Key, value)="<<unsigned(it->first)
+                 << "," <<unsigned(it->second)<< "| \n";
+    }
+    cout<<"-------------------"<<endl;
 }
 
 /**
@@ -196,26 +227,65 @@ Node::insert(uint8_t key, uint8_t value)
  * @param[in]       srcnode successor node from which keys are taken
  * @param[in]       nodedest destination node to which nodes are moved to
  * @return          Void
- * @bugs            range before and after MAXINDEX not compared before copy
  */
 void
 Node::moveKeys(Node *srcnode, Node *nodedest)
 {
     Node* pred = 0;
-    map<uint8_t, uint8_t>::iterator it;
-    for(it=nodedest->localKeys_.begin(); 
-        it != nodedest->localKeys_.end(); it++) {
-        if((it->first < srcnode->id_ ) && (it->first > nodedest->id_)) {
-            continue;
-        }
-        else {
-            cout<<"Moved key (key,value)="<<unsigned(it->first)<<" ";
-            cout<<unsigned(it->second);
-            cout<<" from NodeID="<<srcnode->id_<<" to "<<nodedest->id_<<endl;
-            srcnode->localKeys_.insert(std::make_pair(it->first, it->second));
-            nodedest->localKeys_.erase(it);
+    map<uint8_t, uint8_t>::iterator it = srcnode->localKeys_.begin();
+    printKeys(srcnode);
+
+    /* Find split. Then copy from begin() to begin() + split to dest node */
+    /* MAXINDEX boundary involved use 2 comparison terms */
+    if(nodedest->pred_id >= srcnode->id_) {
+            for(it = srcnode->localKeys_.begin();
+            it != srcnode->localKeys_.end() ; ++it) {
+                DEBUG("DEBUG if part "<<unsigned(nodedest->pred_id)
+                      <<unsigned(it->first)<<" "<<unsigned(nodedest->id_)
+                      <<unsigned(srcnode->id_)<<endl);
+                if( ((it->first > nodedest->pred_id) && 
+                    (it->first <= nodedest->id_)) ||
+                    ((it->first <= nodedest->id_) && 
+                    (it->first  > srcnode->id_)) ){
+                    cout<<"Moved key (key,value)="<<unsigned(it->first)<<" ";
+                    cout<<unsigned(it->second);
+                    cout<<" from NodeID="<<unsigned(srcnode->id_)
+                        <<" to "<<unsigned(nodedest->id_)<<endl;
+                    nodedest->localKeys_.insert(std::make_pair(it->first,
+                                                              it->second));
+                    it->second += 1;
+                }
+            }
+    }
+    else {
+            for(it = srcnode->localKeys_.begin();
+            it != srcnode->localKeys_.end() ; ++it) {
+            DEBUG("DEBUG else part "<<unsigned(srcnode->id_)<<" "
+                  <<unsigned(it->first)<<" "<<unsigned(nodedest->id_)<<endl);
+            if((it->first <= nodedest->id_) && 
+              (it->first  > nodedest->pred_id)) {
+                cout<<"Moved key (key,value)="<<unsigned(it->first)<<" ";
+                cout<<unsigned(it->second);
+                cout<<" from NodeID="<<unsigned(srcnode->id_)
+                    <<" to "<<unsigned(nodedest->id_)<<endl;
+                nodedest->localKeys_.insert(std::make_pair(it->first, 
+                                                           it->second));
+                it->second += 1;
+            }
         }
     }
+
+    /* New run erase as a seperate loop to not mess the iterator pointers */
+    for (it = srcnode->localKeys_.begin(); it != srcnode->localKeys_.end() ; ) {
+        if (it->first != it->second)
+            srcnode->localKeys_.erase(it++);   
+        else
+            ++it;
+    }
+    cout<<"Keys at old node "<<unsigned(srcnode->id_)<<" aftr movement "<<endl;
+    printKeys(srcnode);
+    cout<<"Keys at new node "<<unsigned(nodedest->id_)<<" aftr movement "<<endl;
+    printKeys(nodedest);
 }
 
 /**
@@ -253,11 +323,13 @@ Node::join(Node* node)
     /* update fingertable of related nodes  */
     updateNodeFingerTable();
     /* move keys                            */
-    moveKeys(sucpos->pred_address, this);
+    moveKeys(sucpos, this);
     cout<<"Finger table of joiner(dest) updated"<<endl;
     myfingerTable_.prettyPrint();
-    cout<<"Finger table of bootstrapper(src) updated"<<endl;
+    DEBUG("Finger table of bootstrapper(src) updated"<<endl);
+#ifdef _DEBUG
     node->myfingerTable_.prettyPrint();
+#endif
     return;
 }
 
@@ -273,6 +345,7 @@ Node::join(Node* node)
 Node* 
 Node::remoteRecursiveLookup(uint8_t key)
 {
+    cout<<"Looking up node "<<unsigned(id_)<<endl;
     DEBUG(__FUNCTION__<<"DEBUG: pred id key "<<unsigned(pred_id)<<" "
         <<unsigned(id_)<<" "<<unsigned(key)<<endl);
     /* 
@@ -310,7 +383,7 @@ Node::remoteRecursiveLookup(uint8_t key)
                 return (myfingerTable_.get(i))->remoteRecursiveLookup(key);
         }
     }
-    DEBUG(<<"Last index recur "<<endl);
+    DEBUG("Last index recur "<<endl);
     return (myfingerTable_.get(7))->remoteRecursiveLookup(key);
 }
 
@@ -330,7 +403,7 @@ Node::updateNodeFingerTable(void)
     for(int i=0; i<BITLENGTH; i++) {
         Node* succ = remoteRecursiveLookup(id_ - ( 1 << (i) ));
         uint8_t temp = id_ - ( 1 << (i));
-        DEBUG(<<__FUNCTION__<<" for "<<i<<" succ found is "<<
+        DEBUG(__FUNCTION__<<" for "<<i<<" succ found is "<<
               unsigned(succ->id_)<<"id_ - ( 1 << (i) "<< unsigned(temp) <<endl);
         (succ->pred_address)->updateThisNodesFingerTable(this, id_, i);
     }
@@ -355,31 +428,40 @@ Node::updateThisNodesFingerTable(Node *update, uint8_t updateid, uint8_t index)
         <<unsigned(updateid)<<" "
         <<unsigned(myfingerTable_.get(index)->id_)<<endl);
     int normftindex = myfingerTable_.get(index)->id_;
-    Node *ftnode = (myfingerTable_.get(index))->pred_address;
+    Node *ftnode = pred_address;
     int normupdate = updateid;
     /*
      * eg case1. pred or id = 254 updateid=2 other succ 3, 4
      *    case2. updateid 63 id 5
      */
     if (updateid <= id_) { 
-        DEBUG("using MAXINDEX boundary logic"<<endl); 
+        DEBUG("using MAXINDEX boundary logic"); 
         /*
          * Dont just rearrange on number line . keep them at 
          * the rite distance from one another
          */
         normupdate += (MAXINDEX - id_);
+        DEBUG("we get new normupdate "<<normupdate<<endl);
     }
     /* 
-     * we jumped accross the MAXINDEX bound 
+     *  key and ftindex jumped accross the MAXINDEX bound 
      */
     if ( id_ >= normftindex) {
-            DEBUG("~~~~~~~~~~~~~normindex"<<endl);
-            normftindex += (MAXINDEX - id_);
+            DEBUG("~~~~~~~~~~~~~normindex "<<endl);
+            /* e.g. id_:120 update:253 ft:5 */
+            if (updateid <= id_)
+                normftindex += (MAXINDEX - id_);
+            /* e.g. id_:120 update:2 ft:5 */
+            else
+                normftindex += 255;
+            DEBUG(normftindex<<"~~~~~~~~~~~~~"<<endl);
     }
     if ((normupdate >= id_) && (normupdate < normftindex )) {
         DEBUG("~~~~~~~~~~~~~update~~~~~~~~"<<endl);
         myfingerTable_.set(index, update, updateid);
-        myfingerTable_.prettyPrint();
+#ifdef _DEBUG
+    myfingerTable_.prettyPrint();
+#endif
         DEBUG("~~~~~~~~~~~~~/update~~~~~~~~"<<endl);
         ftnode->updateThisNodesFingerTable(update, updateid, index);
     }

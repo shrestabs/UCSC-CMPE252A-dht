@@ -6,7 +6,6 @@
  * this project both the node saves files represented by 
  *  
  * @author             Shresta B.S.
- * @bug                No know bugs.
 */
 #ifndef NODE_H
 #define NODE_H
@@ -35,9 +34,10 @@ public:
     bool                        find(uint8_t key);
     void                        insert(uint8_t key, uint8_t value);
     void                        remove(uint8_t key);
+    void                        printKeys(Node *srcnode);
     bool                        accessKeyRPC(uint8_t key, Node *);
     void                        initNodeFingertable(Node* bootstrapper);
-    void                        updateNodeFingerTable();
+    void                        updateNodeFingerTable(void);
     void                        updateThisNodesFingerTable(Node *update, 
                                                            uint8_t updateid, 
                                                            uint8_t index);

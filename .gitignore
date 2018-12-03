@@ -1,0 +1,13 @@
+#binary
+bin/*
+
+#File to redirect output
+*.log
+
+.profile
+.vscode
+*.swp
+
+
+
+

@@ -24,7 +24,7 @@
         (nodeindex + (1 << logdist) ) % (1<< (BITLENGTH))
 
 #ifdef _DEBUG
-#define DEBUG(input) std::cout << (input);
+#define DEBUG(input) std::cout << input
 #else
 #define DEBUG(input)
 #endif
